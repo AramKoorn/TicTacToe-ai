@@ -1,6 +1,8 @@
 import itertools
 import numpy as np
 from scripts.tictactoe import TicTacToe
+from itertools import compress
+import random
 
 players = [0, 1, 2]
 
@@ -25,11 +27,11 @@ class TicTacToeBot:
     def evaluate_possible_actions(self, current_board_state):
         return np.where(current_board_state.flatten() == 0)
 
-    def get_qtable_sate(self, current_board_state):
+    def get_qtable_state(self, current_board_state):
         key = {k for k, v in self.q_ref_table.items() if ((current_board_state == v).sum().sum() == 9)}
         if len(key) > 1:
             raise KeyError('We have duplicate states!')
-        possible_actions = self.evaluate_possible_actions(current_board_state)
+        possible_actions = self.evaluate_possible_actions(current_board_state)[0]
 
         # Check if state already exists
         try:
@@ -38,15 +40,48 @@ class TicTacToeBot:
         # Initialize state
         except:
             state = np.zeros(9)
-            state[key][possible_actions] = np.nan
+            idx_set_na = list(set(self.action_space) - set(possible_actions))
+            state[idx_set_na] = np.nan
 
-        return state
+        return state, key
 
-    # For plotting metrics
-    all_epochs = []
-    all_penalties = []
+    def get_reward(self, terminal_state):
+        if terminal_state == 'notdone':
+            reward = 0
+        if terminal_state == 'win':
+            reward = 10
+        if terminal_state == 'draw':
+            reward = 4
+        return reward
 
-    #
+    def train_bot(self):
+
+        # For plotting metrics
+        all_epochs = []
+        all_penalties = []
+
+        for i in range(2):
+
+            done = False
+            env = TicTacToe()
+
+            while not done:
+
+                current_board = env.board
+                q_state, key = self.get_qtable_state(current_board)
+                q_max = np.max(q_state)
+                sel = q_state == q_max
+                action_list = list(compress(self.action_space, sel))
+                if len(action_list) > 1:
+                    action = random.choice(action_list)  # Select randomly from all the max value actions
+                else:
+                    action = action_list[0]
+
+                action = {v: k for k, v in env.coordinates().items()}[action]
+                terminal_state = env.insert_board(action)
+                self.get_reward(terminal_state)
+    #           q_state = self.ge
+
 
 
 
@@ -54,4 +89,4 @@ class TicTacToeBot:
 
 
 if __name__ == '__main__':
-    1 + 1
+    TicTacToeBot().train_bot()

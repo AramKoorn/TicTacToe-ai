@@ -67,31 +67,37 @@ class TicTacToe:
         self.board = self.board.reshape(3, 3)
 
         # Check if there is a winner
-        self.check_win(input_value)
+        terminal_state = self.check_win(input_value)
+        print(f'\n {self.board}')
 
         # Switch player
         self.switch_player()
+
+        return terminal_state
 
     def check_win(self, input_value):
         for i in range(3):
 
             # Check horizontal
             if all(self.board[:, i] == input_value):
-                return print(f'You won \n {self.board}!')
+                return 'win'
 
             # Check vertical
             if all(self.board[i, :] == input_value):
-                return print(f'You won! \n {self.board}')
+                return 'win'
 
         # Check diagonal
         if all(self.board.diagonal() == input_value):
-            return print(f'You won! \n {self.board}')
+            return 'win'
 
         # Check diagonal
-        elif all(self.board.T.diagonal() == input_value):
-            print(f'You won! \n {self.board}')
+        if all(self.board.T.diagonal() == input_value):
+            'win'
+
+        if all(self.board.flatten() != 0):
+            return 'draw'
         else:
-            return print(f'No winner yet \n {self.board}')
+            return 'notdone'
 
 
 if __name__ == '__main__':
