@@ -1,6 +1,10 @@
 import numpy as np
 import random
 
+'''
+# todo: implement draw / win
+'''
+
 class TicTacToe:
 
     def __init__(self):
