@@ -65,10 +65,11 @@ class TicTacToeBot:
         # For plotting metrics
         winner_list = []
 
-        for i in range(100):
+        for i in range(1000):
 
             done = False
             env = TicTacToe()
+            epochs = 0
 
             while not done:
 
@@ -114,7 +115,13 @@ class TicTacToeBot:
                     if done:
                         winner_list.append(f'stupid: {terminal_state}')
 
-        return winner_list
+                epochs += 1
+
+                if i % 100 == 0:
+                    print(i)
+
+        return winner_list, self.q_table
 
 if __name__ == '__main__':
-    test = TicTacToeBot().train_bot()
+    winners, q_table = TicTacToeBot().train_bot()
+    winners

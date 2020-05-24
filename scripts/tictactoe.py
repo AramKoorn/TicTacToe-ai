@@ -68,7 +68,7 @@ class TicTacToe:
 
         # Check if there is a winner
         terminal_state = self.check_win(input_value)
-        print(f'\n {self.board}')
+        #print(f'\n {self.board}')
 
         # Switch player
         self.switch_player()
