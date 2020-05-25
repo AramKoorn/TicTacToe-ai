@@ -14,6 +14,7 @@ todo:
 - use proper notation and naming
 - make nice layout
 
+
 '''
 
 players = [0, 1, 2]
@@ -93,7 +94,7 @@ class TicTacToeBot:
     def train_bot(self, iterations=1000):
 
         # For plotting metrics
-        winner_dict = {}
+        winner_list = []
 
         for i in range(iterations):
 
@@ -133,7 +134,8 @@ class TicTacToeBot:
 
                     done = self.check_finished(terminal_state)
                     if done:
-                        winner_dict[starting_player] = terminal_state
+
+                        winner_list.append(f'{starting_player}: {terminal_state}')
 
                         # Get reward
                         reward = self.get_reward(terminal_state, player_playing)
@@ -154,7 +156,9 @@ class TicTacToeBot:
                     terminal_state = env.insert_board(action)
                     done = self.check_finished(terminal_state)
                     if done:
-                        winner_dict[starting_player] = terminal_state
+
+                        winner_list.append(f'{starting_player}: {terminal_state}')
+
                         reward = self.get_reward(terminal_state, player_playing)
                         self.update_qtable(q_table_history, reward)
                         if reward == 1:
@@ -162,7 +166,7 @@ class TicTacToeBot:
                         else:
                             print('draw')
 
-        return winner_dict, self.q_table
+        return winner_list, self.q_table
 
 if __name__ == '__main__':
     winners, q_table = TicTacToeBot().train_bot()
