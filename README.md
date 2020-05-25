@@ -1,2 +1,3 @@
 # TicTacToe-ai
-Make a TicTacToe enviornment and train an ai
+Creating Tic Tac Toe in python and train an AI using reinforcement learning
+
