@@ -1,9 +1,6 @@
 import numpy as np
 import random
 
-'''
-# todo: implement draw / win
-'''
 
 class TicTacToe:
 
@@ -12,7 +9,7 @@ class TicTacToe:
         self.number_moves = 0
         self.grid = self.coordinates()
         self.player = self.first_player()
-        print(f'Starting player: {self.player}')
+        # print(f'Starting player: {self.player}')
 
     def first_player(self):
         x = random.random()
