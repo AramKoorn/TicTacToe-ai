@@ -22,15 +22,15 @@ players = [0, 1, 2]
 
 class TicTacToeBot:
 
-    def __init__(self):
+    def __init__(self, alpha, gamma, epsilon):
         self.all_states = [[list(i[0:3]), list(i[3:6]), list(i[6:10])] for i in itertools.product(players, repeat=9)]
         self.action_space = [x for x in range(9)]  # There are at maximum 9 possible actions
-        self.player = 'x'  # bot is player x
+        self.player = 'x'  # bot plays x
         self.q_ref_table = dict(zip(list(range(len(self.all_states))), self.all_states))
         self.q_table = {}
-        self.alpha = 0.8
-        self.gamma = 0.6
-        self.epsilon = 0.2
+        self.alpha = alpha
+        self.gamma = gamma
+        self.epsilon = epsilon
 
     def evaluate_possible_actions(self, current_board_state):
         return np.where(current_board_state.flatten() == 0)
@@ -43,7 +43,7 @@ class TicTacToeBot:
 
         # Check if state already exists
         try:
-            state = self.q_table[key]
+            state = self.q_table[list(key)[0]]
 
         # Initialize state
         except:
@@ -58,7 +58,7 @@ class TicTacToeBot:
         if (terminal_state == 'win') & (player == 'x'):
             reward = 1
         if terminal_state == 'draw':
-            reward = 0.5
+            reward = 0
         if (terminal_state == 'win') & (player == 'o'):
             reward = -1
         return reward
@@ -91,25 +91,26 @@ class TicTacToeBot:
 
         pass
 
-    def train_bot(self, iterations=1000):
+    def train(self, iterations=1000):
 
         # For plotting metrics
         winner_list = []
 
-        for i in range(iterations):
+        for i, _ in enumerate(range(iterations)):
+
+            if i % 100 == 0:
+                print(i)
 
             done = False
             env = TicTacToe()
+            starting_player = env.player
+            # print(f'Starting player: {starting_player}')
             q_table_history = {}
 
             while not done:
 
-                current_board = env.board
-                starting_player = env.player
-
                 if env.player == 'x':
 
-                    player_playing = env.player
 
                     # Explore
                     if random.random() < self.epsilon:
@@ -117,7 +118,11 @@ class TicTacToeBot:
 
                     # Eploit
                     else:
-                        q_state, key = self.get_qtable_state(current_board)
+                        q_state, key = self.get_qtable_state(env.board)
+                        possible_actions = self.evaluate_possible_actions(env.board)[0]
+                        idx_set_na = list(set(self.action_space) - set(possible_actions))
+                        q_state[idx_set_na] = np.nan
+
                         q_max = np.nanmax(q_state)
                         sel = q_state == q_max
                         action_list = list(compress(self.action_space, sel))
@@ -127,6 +132,7 @@ class TicTacToeBot:
                             action = action_list[0]
 
                     action_coded = {v: k for k, v in env.coordinates().items()}[action]
+                    player_playing = env.player
                     terminal_state = env.insert_board(action_coded)
 
                     # Save action
@@ -135,38 +141,35 @@ class TicTacToeBot:
                     done = self.check_finished(terminal_state)
                     if done:
 
-                        winner_list.append(f'{starting_player}: {terminal_state}')
+                        print(f'{player_playing}: {terminal_state}')
 
                         # Get reward
                         reward = self.get_reward(terminal_state, player_playing)
                         self.update_qtable(q_table_history, reward)
-                        if reward == 1:
-                            print('AI won!')
-                        else:
-                            print('draw')
+                        # print(env.board)
 
                 else:
 
                     # Player playing
                     player_playing = env.player
 
-                    possible_actions = self.evaluate_possible_actions(current_board)[0]
+                    possible_actions = self.evaluate_possible_actions(env.board)[0]
                     action = random.choice(possible_actions)
+                    # action = possible_actions[0]
                     action = {v: k for k, v in env.coordinates().items()}[action]
+                    player_playing = env.player
                     terminal_state = env.insert_board(action)
                     done = self.check_finished(terminal_state)
                     if done:
 
-                        winner_list.append(f'{starting_player}: {terminal_state}')
+                        print(f'{player_playing}: {terminal_state}')
 
                         reward = self.get_reward(terminal_state, player_playing)
                         self.update_qtable(q_table_history, reward)
-                        if reward == 1:
-                            print('Stupid won :(')
-                        else:
-                            print('draw')
+                        # print(env.board)
 
         return winner_list, self.q_table
 
+
 if __name__ == '__main__':
-    winners, q_table = TicTacToeBot().train_bot()
+    winners, q_table = TicTacToeBot(alpha=0.9, gamma=1, epsilon=0.1).train()

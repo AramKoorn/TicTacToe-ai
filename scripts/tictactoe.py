@@ -87,8 +87,8 @@ class TicTacToe:
         if all(self.board.diagonal() == input_value):
             return 'win'
 
-        # Check diagonal
-        if all(self.board.T.diagonal() == input_value):
+        # Check other diagonal
+        if all(np.fliplr(self.board).diagonal() == input_value):
             'win'
 
         if all(self.board.flatten() != 0):
