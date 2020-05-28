@@ -146,7 +146,7 @@ class TicTacToeBot:
                         # Get reward
                         reward = self.get_reward(terminal_state, player_playing)
                         self.update_qtable(q_table_history, reward)
-                        # print(env.board)
+                        print(env.board)
 
                 else:
 
@@ -157,7 +157,6 @@ class TicTacToeBot:
                     action = random.choice(possible_actions)
                     # action = possible_actions[0]
                     action = {v: k for k, v in env.coordinates().items()}[action]
-                    player_playing = env.player
                     terminal_state = env.insert_board(action)
                     done = self.check_finished(terminal_state)
                     if done:
@@ -166,7 +165,7 @@ class TicTacToeBot:
 
                         reward = self.get_reward(terminal_state, player_playing)
                         self.update_qtable(q_table_history, reward)
-                        # print(env.board)
+                        print(env.board)
 
         return winner_list, self.q_table
 
