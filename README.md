@@ -7,6 +7,7 @@ Creating a Tic Tac Toe AI bot using reinforcement learning from scratch in Pytho
 
 ## WIP
 * Metrics
+* DQN network
 
 ## Current performance
-AI bot wins 70% of the 1000 games
+AI bot wins 70% of the 1000 games against random player
