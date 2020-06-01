@@ -1,3 +1,12 @@
 # TicTacToe-ai
-Creating Tic Tac Toe in python and implement a reinforcement to train an AI. Only using numpy and the builtin poython functions. 
+Creating a Tic Tac Toe AI bot using reinforcement learning from scratch in Python. Only numpy and the basic python builtin functions are allowed for creating the enviornment and the AI algorithm
 
+## Currently implemented
+* Tic Tac Toe enviornment (board)
+* Q-learning algorithm
+
+## WIP
+* Metrics
+
+## Current performance
+AI bot wins 70% of the 1000 games
