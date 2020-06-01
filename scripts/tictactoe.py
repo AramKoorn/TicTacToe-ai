@@ -1,29 +1,38 @@
+#!/usr/bin/env python3
+
 import numpy as np
 import random
+from itertools import compress
 
 
 class TicTacToe:
 
     def __init__(self):
-        self.board = np.array([[0, 0, 0], [0, 0, 0], [0, 0, 0]])
+        self.board = np.array([['', '', ''], ['', '', ''], ['', '', '']])
         self.number_moves = 0
         self.grid = self.coordinates()
         self.player = self.first_player()
+        self.action_space = [x for x in range(9)]
         # print(f'Starting player: {self.player}')
+
+    def sample(self):
+        idx = list(self.board.flatten() == '')
+        possible_actions = list(compress(self.action_space, idx))
+        return random.choice(possible_actions)
 
     def first_player(self):
         x = random.random()
         if x < 0.5:
-            player = 'x'
+            player = 'X'
         else:
-            player = 'o'
+            player = 'O'
         return player
 
     def switch_player(self):
-        if self.player == 'x':
-            self.player = 'o'
+        if self.player == 'X':
+            self.player = 'O'
         else:
-            self.player = 'x'
+            self.player = 'X'
 
     def coordinates(self):
         grid =  '''\
@@ -42,16 +51,13 @@ class TicTacToe:
         if element not in list(range(0, len(self.board))):
             raise ValueError('Not a valid input!')
 
-        if self.board[element] != 0:
+        if self.board[element] != '':
             raise KeyError('Not a valid input!')
 
     def insert_board(self, coord):
 
-        # Determine input value
-        if self.player == 'x':
-            input_value = 1
-        else:
-            input_value = 2
+        # Either X or O
+        input_value = self.player
 
         self.board = self.board.flatten()
         element = self.grid[coord]
@@ -65,10 +71,10 @@ class TicTacToe:
 
         # Check if there is a winner
         terminal_state = self.check_win(input_value)
-        #print(f'\n {self.board}')
 
-        # Switch player
-        self.switch_player()
+        # Switch player if the game if not done yet
+        if terminal_state == 'notdone':
+            self.switch_player()
 
         return terminal_state
 
@@ -89,9 +95,9 @@ class TicTacToe:
 
         # Check other diagonal
         if all(np.fliplr(self.board).diagonal() == input_value):
-            'win'
+            return 'win'
 
-        if all(self.board.flatten() != 0):
+        if all(self.board.flatten() != ''):
             return 'draw'
         else:
             return 'notdone'
@@ -99,4 +105,6 @@ class TicTacToe:
 
 if __name__ == '__main__':
 
+    TicTacToe().sample()
     TicTacToe().insert_board('AC')
+

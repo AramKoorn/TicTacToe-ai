@@ -1,8 +1,11 @@
+#!/usr/bin/env python3
+
 import itertools
 import numpy as np
 from scripts.tictactoe import TicTacToe
 from itertools import compress
 import random
+import pandas as pd
 
 '''
 Note we assign Qvalues after state is done
@@ -17,23 +20,19 @@ todo:
 
 '''
 
-players = [0, 1, 2]
 
+class Qtable:
+    """
+    Qtable specifically designed for tic tac toe
+    """
 
-class TicTacToeBot:
-
-    def __init__(self, alpha, gamma, epsilon):
-        self.all_states = [[list(i[0:3]), list(i[3:6]), list(i[6:10])] for i in itertools.product(players, repeat=9)]
+    def __init__(self, player_name):
+        self.all_states = [[list(i[0:3]), list(i[3:6]), list(i[6:10])] for i in
+                           itertools.product(['X', 'O', ''], repeat=9)]
+        self.player_name = player_name
         self.action_space = [x for x in range(9)]  # There are at maximum 9 possible actions
-        self.player = 'x'  # bot plays x
         self.q_ref_table = dict(zip(list(range(len(self.all_states))), self.all_states))
         self.q_table = {}
-        self.alpha = alpha
-        self.gamma = gamma
-        self.epsilon = epsilon
-
-    def evaluate_possible_actions(self, current_board_state):
-        return np.where(current_board_state.flatten() == 0)
 
     def get_qtable_state(self, current_board_state):
         key = {k for k, v in self.q_ref_table.items() if ((current_board_state == v).sum().sum() == 9)}
@@ -52,22 +51,6 @@ class TicTacToeBot:
             state[idx_set_na] = np.nan
 
         return state, key
-
-    def get_reward(self, terminal_state, player):
-
-        if (terminal_state == 'win') & (player == 'x'):
-            reward = 1
-        if terminal_state == 'draw':
-            reward = 0
-        if (terminal_state == 'win') & (player == 'o'):
-            reward = -1
-        return reward
-
-    def check_finished(self, terminal_state):
-        if terminal_state != 'notdone':
-            return True
-        else:
-            return False
 
     def update_qtable(self, q_table_path, reward):
 
@@ -91,84 +74,162 @@ class TicTacToeBot:
 
         pass
 
-    def train(self, iterations=1000):
 
-        # For plotting metrics
-        winner_list = []
+class QLearning:
+    def __init__(self, bot_X, bot_O):
+        self.bot_X = bot_X
+        self.bot_O = bot_O
+        self.check_different_players()
+        self.q_ref_table = dict(zip(list(range(len(bot_X.all_states))), bot_X.all_states))
 
-        for i, _ in enumerate(range(iterations)):
+    def check_different_players(self):
+        if self.bot_X.player_name == self.bot_O.player_name:
+            raise ValueError('Should be different players')
 
-            if i % 100 == 0:
-                print(i)
+    def evaluate_possible_actions(self, current_board_state):
+        return np.where(current_board_state.flatten() == '')
+
+    def get_qtable_state(self, env, player):
+
+        key = {k for k, v in self.q_ref_table.items() if ((env.board == v).sum().sum() == 9)}
+        if len(key) > 1:
+            raise KeyError('We have duplicate states!')
+        key = list(key)[0]
+        possible_actions = self.evaluate_possible_actions(env.board)[0]
+
+        if player == 'X':
+            bot = self.bot_X
+        else:
+            bot = self.bot_O
+
+        # Check if state already exists
+        try:
+            if player == 'X':
+                state = self.bot_X.q_table[key]
+                return state, key
+            else:
+                state = self.bot_O.q_table[key]
+                return state, key
+
+        # Initialize state
+        except:
+            state = np.zeros(9)
+            idx_set_na = list(set(env.action_space) - set(possible_actions))
+            state[idx_set_na] = np.nan
+
+            # Init state in the Q Table
+            if player == 'X':
+                self.bot_X.q_table[key] = state
+            else:
+                self.bot_O.q_table[key] = state
+
+        return state, key
+
+    def update_qtable(self, path_x, path_o, env, reward_dict):
+
+        alpha = 0.4
+        gamma = 1
+
+        # Update qtable O
+        for i, key in enumerate(sorted(path_o.keys(), reverse=False)):
+            action = path_o[key]
+
+            if i == 0:
+                old_value = bot_O.q_table[key][action]
+                reward = reward_dict['O']
+                next_max = 0
+                new_value = (1 - alpha) * old_value + alpha * (reward + gamma * next_max)
+                bot_O.q_table[key][action] = new_value
+            else:
+                old_value = bot_O.q_table[key][action]
+                new_value = (1 - alpha) * old_value + alpha * (gamma * new_value)
+                bot_O.q_table[key][action] = new_value
+
+        # Update qtable X
+        for i, key in enumerate(sorted(path_x.keys(), reverse=False)):
+            action = path_x[key]
+
+            if i == 0:
+                old_value = bot_X.q_table[key][action]
+                reward = reward_dict['X']
+                next_max = 0
+                new_value = (1 - alpha) * old_value + alpha * (reward + gamma * next_max)
+                bot_X.q_table[key][action] = new_value
+            else:
+                old_value = bot_X.q_table[key][action]
+                new_value = (1 - alpha) * old_value + alpha * (gamma * new_value)
+                bot_X.q_table[key][action] = new_value
+
+        pass
+
+    def train(self, alpha=0.6, gamma=0.6, epsilon=0.1):
+
+        for i in range(7000):
 
             done = False
             env = TicTacToe()
-            starting_player = env.player
-            # print(f'Starting player: {starting_player}')
-            q_table_history = {}
+            # Init path inside the loop
+            path_x = {}
+            path_o = {}
 
             while not done:
+                player_turn = env.player
 
-                if env.player == 'x':
-
-
-                    # Explore
-                    if random.random() < self.epsilon:
-                        action = random.choice(self.evaluate_possible_actions(env.board)[0])
-
-                    # Eploit
-                    else:
-                        q_state, key = self.get_qtable_state(env.board)
-                        possible_actions = self.evaluate_possible_actions(env.board)[0]
-                        idx_set_na = list(set(self.action_space) - set(possible_actions))
-                        q_state[idx_set_na] = np.nan
-
-                        q_max = np.nanmax(q_state)
-                        sel = q_state == q_max
-                        action_list = list(compress(self.action_space, sel))
-                        if len(action_list) > 1:
-                            action = random.choice(action_list)  # Select randomly from all the max value actions
-                        else:
-                            action = action_list[0]
-
-                    action_coded = {v: k for k, v in env.coordinates().items()}[action]
-                    player_playing = env.player
-                    terminal_state = env.insert_board(action_coded)
-
-                    # Save action
-                    q_table_history[list(key)[0]] = action
-
-                    done = self.check_finished(terminal_state)
-                    if done:
-
-                        print(f'{player_playing}: {terminal_state}')
-
-                        # Get reward
-                        reward = self.get_reward(terminal_state, player_playing)
-                        self.update_qtable(q_table_history, reward)
-                        print(env.board)
-
+                if player_turn == 'X':
+                    player = self.bot_X.player_name
                 else:
+                    player = self.bot_O.player_name
 
-                    # Player playing
-                    player_playing = env.player
+                qstate, key = self.get_qtable_state(env, player)
 
-                    possible_actions = self.evaluate_possible_actions(env.board)[0]
-                    action = random.choice(possible_actions)
-                    # action = possible_actions[0]
-                    action = {v: k for k, v in env.coordinates().items()}[action]
-                    terminal_state = env.insert_board(action)
-                    done = self.check_finished(terminal_state)
-                    if done:
+                if random.uniform(0, 1) < epsilon:
+                    action = env.sample()  # Explore action space
+                else:
+                    invalid = np.where(env.board.flatten() != '')
+                    if len(invalid) > 0:
+                        qstate[invalid] = np.nan
 
-                        print(f'{player_playing}: {terminal_state}')
+                    max_value = np.nanmax(qstate)  # Exploit learned values
+                    idx = qstate == max_value
+                    actions = list(compress(env.action_space, idx))
+                    action = random.choice(actions)
 
-                        reward = self.get_reward(terminal_state, player_playing)
-                        self.update_qtable(q_table_history, reward)
-                        print(env.board)
+                if player_turn == 'X':
+                    path_x[key] = action
+                if player_turn == 'O':
+                    path_o[key] = action
 
-        return winner_list, self.q_table
+                # Do action
+                action_coded = {v: k for k, v in env.coordinates().items()}[action]
+                game_state = env.insert_board(action_coded)
+
+                if game_state != 'notdone':
+
+                    if game_state == 'draw':
+                        reward_dict = {'X': 0, 'O': 0}
+                    if (env.player == 'O') & (game_state == 'win'):
+                        reward_dict = {'X': -1, 'O': 1}
+                    if (env.player == 'X') & (game_state == 'win'):
+                        reward_dict = {'X': 1, 'O': -1}
+
+                    # Update q table
+                    self.update_qtable(path_x, path_o, env, reward_dict)
+                    done = True
+                    #print(f'{env.player}: {game_state}')
+                    #print(env.board)
 
 
 if __name__ == '__main__':
-    winners, q_table = TicTacToeBot(alpha=0.9, gamma=1, epsilon=0.1).train()
+    bot_X = Qtable(player_name='X')
+    bot_O = Qtable(player_name='O')
+
+    QLearning(bot_X, bot_O).train()
+
+    # Save data
+    import os
+
+    os.chdir('..')
+
+    pd.to_pickle(bot_X, 'data/bot_x_7000.pkl')
+    pd.to_pickle(bot_O, 'data/bot_o_7000.pkl')
+
