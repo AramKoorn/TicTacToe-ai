@@ -6,8 +6,21 @@ Creating a Tic Tac Toe AI bot using reinforcement learning from scratch in Pytho
 * Q-learning algorithm
 
 ## WIP
-* Metrics
 * DQN network
 
 ## Current performance
-AI bot wins 70% of the 1000 games against random player
+100 games played and the starting player for each game is randomly assigned. When N --> inf. bot X and O should converge to same values.
+
+Player: 'O'
+
+| wins | draws | losses |
+|------|-------|--------|
+| 88%  | 6%    | 6%    |
+
+
+Player: 'X'
+
+| wins | draws | losses |
+|------|-------|--------|
+| 83%  | 8%    | 9%    |
+
