@@ -8,7 +8,7 @@ from scripts.tictactoe_bot import Qtable
 
 def play_against_random(iterations):
 
-    bot = pd.read_pickle('data/qtable_o.pkl')
+    bot = pd.read_pickle('data/bot_o_7000.pkl')
     test = Qtable('X')
 
     ai_won = 0
@@ -32,7 +32,7 @@ def play_against_random(iterations):
             else:
                 key = list({k for k, v in test.q_ref_table.items() if (env.board == v).sum().sum() == 9})[0]
                 try:
-                    state = bot[key]
+                    state = bot.q_table[key]
                     action = np.nanargmax(state)
                     action_coded = {v: k for k, v in env.coordinates().items()}[action]
                     game_state = env.insert_board(action_coded)
@@ -55,7 +55,7 @@ def play_against_random(iterations):
 # PLay thousand games against random player
 def run():
 
-    iterations = 1000
+    iterations = 100
     ai_won, random_moves = play_against_random(iterations=iterations)
 
     print(f'AI won {ai_won/iterations}% of {iterations} games')

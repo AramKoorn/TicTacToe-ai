@@ -13,9 +13,9 @@ def play():
 
     # Select the inplayer you want to be and import bot
     if inp == 'X':
-        bot = pd.read_pickle('data/qtable_o.pkl')
+        bot = pd.read_pickle('data/bot_o_7000.pkl')
     if inp == 'O':
-        bot = pd.read_pickle('data/qtable_x.pkl')
+        bot = pd.read_pickle('data/bot_x_7000.pkl')
 
     # To get all the states
     test = Qtable('X')
@@ -34,8 +34,8 @@ def play():
             game_state = env.insert_board(move)
             print(f'{env.board}')
         else:
-            key = list({k for k, v in test.q_ref_table.items() if (env.board == v).sum().sum() == 9})[0]
-            state = bot[key]
+            key = list({k for k, v in bot.q_ref_table.items() if (env.board == v).sum().sum() == 9})[0]
+            state = bot.q_table[key]
             action = np.nanargmax(state)
             action_coded = {v: k for k, v in env.coordinates().items()}[action]
             game_state = env.insert_board(action_coded)
